@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Alexandr Sitdikov</Authors>
+    <Company />
+    <Description>Very simple module manager for build loosely coupled applications based on IOC/DI</Description>
+    <PackageTags>loosely coupled; modules; ioc/di</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+</Project>
