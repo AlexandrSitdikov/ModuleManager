@@ -66,7 +66,7 @@
         /// Load Modules from AppDomain & module path dlls
         /// </summary>
         /// <param name="container">IOC/DI container</param>
-        public void LoadModules(object container)
+        public void LoadModules(object container = null)
         {
             this.State = State.LoadAssemblies;
 
@@ -174,8 +174,12 @@
         {
             public LoadingModule(Type type, object container)
             {
-                this.Module = (IModule)Activator.CreateInstance(type, new object[] { container });
                 this.Assembly = type.Assembly;
+                this.Module = (IModule)Activator.CreateInstance(type);
+                if (container != null)
+                {
+                    (this.Module as IIOCModule)?.SetContainer(container);
+                }
             }
 
             public IModule Module { get; set; }

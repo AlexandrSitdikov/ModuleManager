@@ -4,17 +4,17 @@
     /// Abstract Module, configurable by custom IOC/DI container
     /// </summary>
     /// <typeparam name="TContainer">Any IOC/DI container</typeparam>
-    public abstract class AbstractModule<TContainer> : IModule
+    public abstract class AbstractModule<TContainer> : IIOCModule
     {
-        public AbstractModule(TContainer container)
-        {
-            this.Container = container;
-        }
-
         public abstract string Name { get; }
 
-        public abstract void Register();
-        
         protected TContainer Container { get; private set; }
+
+        public abstract void Register();
+
+        public void SetContainer(object container)
+        {
+            this.Container = (TContainer)container;
+        }
     }
 }
