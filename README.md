@@ -53,7 +53,10 @@ MyCusctomModule2.dll
 
 Application.dll
     
-       var container = new IOCContainer();
-	   var moduleManager = new ModuleManager.Manager(AppDomain.CurrentDomain.SetupInformation.PrivateBinPath, bin => bin.Name.StartsWith("MyCoolPlatform."))
-	   moduleManager.ModuleRegistered += module => ApplicationContext.Instance.FireModuleLoaded(container , module);
-	   moduleManager.LoadModules(type => (IModule)container .GetInstance(type), type => container .Register(type, new SingletonLifetime()));
+	var container = new ServiceContainer();
+    	var moduleManager = new ModuleManager.Manager();
+
+    	container.RegisterInstance<IServiceContainer>(container);
+    	container.RegisterInstance(moduleManager);
+
+    	moduleManager.LoadModules(type => (ModuleManager.IModule)container.GetInstance(type), type => container.Register(type));
