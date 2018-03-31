@@ -1,0 +1,6 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Target Name="AfterBuild">
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="..\SampleMVC\bin\" />
+		<Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="..\SampleMVC\bin\" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+	</Target>  
+</Project>
