@@ -4,12 +4,14 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Alexandr Sitdikov</Authors>
     <Company />
-    <Description>Very simple module manager for build loosely coupled applications based on IOC/DI</Description>
-    <PackageTags>loosely coupled; modules; ioc/di</PackageTags>
+    <Description>Very simple module manager for build loosely coupled .NET applications based on IOC/DI</Description>
+    <PackageTags>loosely-coupled; modules; ioc/di</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0.0</FileVersion>
-    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <FileVersion>1.1.1.0</FileVersion>
+    <Version>1.1.1</Version>
+    <RepositoryUrl>https://github.com/AlexandrSitdikov/ModuleManager</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/AlexandrSitdikov/ModuleManager</PackageProjectUrl>
   </PropertyGroup>
 
 </Project>
