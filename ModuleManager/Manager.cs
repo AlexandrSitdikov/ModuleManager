@@ -65,8 +65,9 @@
         /// <summary>
         /// Load Modules from AppDomain & module path dlls
         /// </summary>
-        /// <param name="container">IOC/DI container</param>
-        public void LoadModules(object container = null)
+        /// <param name="getModuleInstance">Get instance from IOC</param>
+        /// <param name="registerModuleType">Register type in IOC</param>
+        public void LoadModules(Func<Type, IModule> getModuleInstance, Action<Type> registerModuleType)
         {
             this.State = State.LoadAssemblies;
 
@@ -79,38 +80,32 @@
                 var bins = new DirectoryInfo(this.modulePath).GetFiles("*.dll");
                 foreach (var bin in bins)
                 {
-                    if (this.moduleFilter == null || !this.moduleFilter(bin))
+                    if (assemplyList.Any(x => x.CodeBase.ToLower().EndsWith('/' + bin.Name.ToLower())) || (this.moduleFilter != null && !this.moduleFilter(bin)))
                     {
                         continue;
                     }
 
-                    try
+                    var ass = Assembly.LoadFrom(bin.FullName);
+                    if (ass.GetTypes().Any(p => typeof(IModule).IsAssignableFrom(p)))
                     {
-                        var ass = Assembly.LoadFrom(bin.FullName);
-                        if (ass.GetTypes().Any(p => typeof(IModule).IsAssignableFrom(p)))
-                        {
-                            assemplyList.Add(ass);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        throw ex;
+                        assemplyList.Add(ass);
                     }
                 }
             }
 
-            this.LoadModules(container, assemplyList.ToArray());
+            this.LoadModules(getModuleInstance, registerModuleType, assemplyList.ToArray());
         }
 
         /// <summary>
         /// Load Modules from Assemblies. Use this method for Tests
         /// </summary>
-        /// <param name="container">IOC/DI container</param>
+        /// <param name="getModuleInstance">Get instance from IOC</param>
+        /// <param name="registerModuleType">Register type in IOC</param>
         /// <param name="assemplyList">Module assembly list</param>
-        public void LoadModules(object container, params Assembly[] assemplyList)
+        public void LoadModules(Func<Type, IModule> getModuleInstance, Action<Type> registerModuleType, params Assembly[] assemplyList)
         {
             this.State = State.LoadModules;
-            Init(container, assemplyList);
+            Init(getModuleInstance, registerModuleType, assemplyList);
             while (moduleList.Any(x => !x.IsLoaded))
             {
                 foreach (var module in moduleList.Where(ml => !ml.IsLoaded && !ml.Assembly.GetReferencedAssemblies().Any(x => moduleList.Any(l => !l.IsLoaded && l.Assembly.GetName().Name.Equals(x.Name)))).ToList())
@@ -123,7 +118,7 @@
                     }
                     catch (Exception ex)
                     {
-                        if (this.ModuleRegiterFail?.Invoke(module.Module, ex) == false)
+                        if (this.ModuleRegiterFail == null || this.ModuleRegiterFail.Invoke(module.Module, ex) == false)
                         {
                             this.State = State.Fail;
                             throw;
@@ -154,17 +149,19 @@
             return moduleList.Where(x => x.Module.GetType().Assembly == assembly).Select(x => x.Module).FirstOrDefault();
         }
 
-        private void Init(object container, params Assembly[] assemplyList)
+        private void Init(Func<Type, IModule> getModuleInstance, Action<Type> registerModuleType, params Assembly[] assemplyList)
         {
             moduleList.Clear();
             if (assemplyList != null)
             {
                 foreach (var assembly in assemplyList.OrderBy(x => x.GetName().Name))
                 {
-                    var modules = assembly.GetTypes().FirstOrDefault(x => x.GetInterfaces().Any(i => i == typeof(IModule)));
-                    if (modules != null)
+                    var moduleType = assembly.GetTypes().FirstOrDefault(x => x.GetInterfaces().Any(i => i == typeof(IModule)));
+                    if (moduleType != null)
                     {
-                        moduleList.Add(new LoadingModule(modules, container));
+                        registerModuleType(moduleType);
+                        var module = getModuleInstance(moduleType);
+                        moduleList.Add(new LoadingModule(module));
                     }
                 }
             }
@@ -172,14 +169,10 @@
 
         private class LoadingModule
         {
-            public LoadingModule(Type type, object container)
+            public LoadingModule(IModule module)
             {
-                this.Assembly = type.Assembly;
-                this.Module = (IModule)Activator.CreateInstance(type);
-                if (container != null)
-                {
-                    (this.Module as IIOCModule)?.SetContainer(container);
-                }
+                this.Assembly = module.GetType().Assembly;
+                this.Module = module;
             }
 
             public IModule Module { get; set; }
